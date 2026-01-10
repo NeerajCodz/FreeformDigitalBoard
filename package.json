@@ -1,0 +1,64 @@
+{
+  "name": "freeform-digital-board",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A free-form digital board for creating and organizing pins, notes, lists, and images on an infinite canvas with tagging, grouping, and snapshot features.",
+  "author": "Neeraj Sathish Kumar",
+  "homepage": "https://github.com/NeerajCodz/Digital-Circuit-Simulator#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NeerajCodz/Digital-Circuit-Simulator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/NeerajCodz/Digital-Circuit-Simulator/issues"
+  },
+  "keywords": [
+    "digital-board",
+    "pin-board",
+    "notes",
+    "canvas",
+    "collaboration",
+    "nextjs",
+    "react",
+    "typescript",
+    "prisma",
+    "clerk-auth"
+  ],
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^6.36.7",
+    "@clerk/types": "^4.101.7",
+    "@prisma/client": "^6.18.0",
+    "@radix-ui/react-tooltip": "^1.0.7",
+    "@types/uuid": "^9.0.8",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.23.24",
+    "lucide-react": "^0.546.0",
+    "next": "16.1.1",
+    "prisma": "^6.18.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-hot-toast": "^2.6.0",
+    "reactflow": "^11.11.2",
+    "svix": "^1.78.0",
+    "tailwind-merge": "^2.3.0",
+    "tailwindcss-animate": "^1.0.7",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.2",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}
