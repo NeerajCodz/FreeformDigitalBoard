@@ -57,7 +57,11 @@ Perfect for brainstorming, project planning, mood boards, visual note-taking, an
 ---
 
 ## 📸 Screenshots
-
+<img width="1895" height="862" alt="image" src="https://github.com/user-attachments/assets/f457ac2d-9539-4ca0-af00-7c856cea13f7" />
+<img width="1901" height="867" alt="image" src="https://github.com/user-attachments/assets/58f750e6-e1d1-4c65-b70a-bc02a987a0ef" />
+<img width="1919" height="865" alt="image" src="https://github.com/user-attachments/assets/28e115b2-3def-46fa-a536-278c088d1354" />
+<img width="1917" height="864" alt="image" src="https://github.com/user-attachments/assets/14382300-f6ff-4c3d-85b8-8d349bc2c6dd" />
+<img width="1919" height="871" alt="image" src="https://github.com/user-attachments/assets/b7e7b9ba-07bc-4e7f-a533-d7968a9adc9d" />
 
 ## 🚀 Getting Started
 
