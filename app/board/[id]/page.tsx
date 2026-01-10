@@ -1241,17 +1241,23 @@ export default function BoardEditor() {
                   <LinkIcon className="w-5 h-5" />
                   <span className="text-xs">Link</span>
                 </button>
-                <button onClick={() => imageInputRef.current?.click()} className="flex flex-col items-center gap-2 px-3 py-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                  <ImageIcon className="w-5 h-5" />
-                  <span className="text-xs">Files & Media</span>
-                </button>
                 <button 
                   onClick={() => {
-                    if (!selectedPinId) {
-                      toast.error("Select a pin first");
-                      return;
+                    let pinId = selectedPinId;
+                    if (!pinId) {
+                      // Create a new note if none is selected
+                      history.commit((draft) => {
+                        const newPin = defaultPin("note", draft.viewport);
+                        draft.pins.push(newPin);
+                        pinId = newPin.id;
+                        return draft;
+                      });
+                      setSelectedPinId(pinId);
                     }
-                    attachmentInputRef.current?.click();
+                    // Delay to ensure state is updated
+                    setTimeout(() => {
+                      attachmentInputRef.current?.click();
+                    }, 0);
                   }} 
                   className="flex flex-col items-center gap-2 px-3 py-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
                 >
