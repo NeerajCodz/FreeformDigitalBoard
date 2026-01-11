@@ -40,9 +40,7 @@ import Link from "next/link";
 import NextImage from "next/image";
 import Loader from "@/components/Loader";
 import UserProfile from "@/components/UserProfile";
-import BoardSettingsModal from "@/components/modals/BoardSettingsModal";
-import LabelCreateModal from "@/components/modals/LabelCreateModal";
-import GroupCreateModal from "@/components/modals/GroupCreateModal";
+import { BoardSettingsModal, LabelCreateModal, GroupCreateModal } from "@/components/modals";
 import { BoardPin, BoardState, PinKind } from "@/types/board";
 import { emptyBoardState, sanitizeBoardState } from "@/lib/board-state";
 
@@ -1564,7 +1562,7 @@ export default function BoardEditor() {
             opacity: sidebarOpen ? 1 : 0,
           }}
           transition={{ duration: 0.2, ease: "easeInOut" }}
-          className="border-r border-white/10 bg-slate-900/40 backdrop-blur overflow-hidden flex-shrink-0"
+          className="border-r border-white/10 bg-slate-900/40 backdrop-blur overflow-hidden flex-shrink-0 relative z-30 shadow-lg"
         >
           <div className="w-72 px-4 py-6 space-y-6 overflow-y-auto h-full">
             {/* Toolbar Header with Close Button */}
@@ -1671,7 +1669,7 @@ export default function BoardEditor() {
         </motion.aside>
 
         {/* Canvas */}
-        <section className="flex-1 relative">
+        <section className="flex-1 relative z-0 overflow-hidden">
           {/* Search Bar - Floating */}
           <div className={`absolute top-4 z-20 flex items-center gap-3 transition-all ${
             sidebarOpen ? 'left-6' : 'left-20'

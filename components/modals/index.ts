@@ -4,6 +4,7 @@
  */
 
 export { default as AuthModal } from './AuthModal';
+export { default as BoardEditModal } from './BoardEditModal';
 export { default as BoardSettingsModal } from './BoardSettingsModal';
 export { default as CategoryModal } from './CategoryModal';
 export { default as ConfirmationModal } from './ConfirmationModal';

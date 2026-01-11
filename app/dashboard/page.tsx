@@ -18,10 +18,13 @@ import Link from "next/link";
 import NextImage from "next/image";
 import { useRouter } from "next/navigation";
 import Loader from "@/components/Loader";
-import BoardEditModal from "@/components/modals/BoardEditModal";
-import ConfirmationModal from "@/components/modals/ConfirmationModal";
-import CategoryModal from "@/components/modals/CategoryModal";
-import SnapshotEditModal from "@/components/modals/SnapshotEditModal";
+import {
+  BoardSettingsModal,
+  ConfirmationModal,
+  CategoryModal,
+  SnapshotEditModal,
+  TagModal,
+} from "@/components/modals";
 import UserProfile from "@/components/UserProfile";
 import { DashboardContextMenu } from "@/components/context/DashboardContextMenu";
 import {
@@ -77,6 +80,27 @@ const SNAPSHOTS_PER_BOARD = 2;
 const BOARD_INITIAL_VISIBLE = 3;
 const BOARD_BATCH_SIZE = 6;
 
+const hexToRgba = (hex: string, alpha = 1) => {
+  if (!hex) return `rgba(148, 163, 184, ${alpha})`;
+  let sanitized = hex.replace("#", "");
+  if (sanitized.length === 3) {
+    sanitized = sanitized
+      .split("")
+      .map((char) => char + char)
+      .join("");
+  }
+
+  const numeric = Number.parseInt(sanitized, 16);
+  if (Number.isNaN(numeric)) {
+    return `rgba(148, 163, 184, ${alpha})`;
+  }
+
+  const r = (numeric >> 16) & 255;
+  const g = (numeric >> 8) & 255;
+  const b = numeric & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 const SnapshotPreview = ({ state }: { state: BoardState | null }) => {
   if (!state || state.pins.length === 0) {
     return (
@@ -125,6 +149,9 @@ const SnapshotPreview = ({ state }: { state: BoardState | null }) => {
           const pinWidth = Math.max(pin.width * scale, 12);
           const pinHeight = Math.max(pin.height * scale, 12);
           const isImage = pin.kind === "image" && pin.imageUrl;
+          const fallbackAccent = pin.color || "#475569";
+          const glassBackground = hexToRgba(fallbackAccent, 0.28);
+          const glassBorder = hexToRgba(fallbackAccent, 0.45);
 
           return (
             <div
@@ -135,10 +162,14 @@ const SnapshotPreview = ({ state }: { state: BoardState | null }) => {
                 top,
                 width: pinWidth,
                 height: pinHeight,
-                backgroundColor: isImage ? undefined : pin.color,
+                backgroundColor: isImage ? undefined : glassBackground,
                 backgroundImage: isImage ? `url(${pin.imageUrl})` : undefined,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
+                borderColor: isImage ? "rgba(255,255,255,0.15)" : glassBorder,
+                boxShadow: "0 12px 35px rgba(2, 6, 23, 0.6)",
+                backdropFilter: isImage ? undefined : "blur(8px)",
+                opacity: isImage ? 0.9 : 1,
               }}
             />
           );
@@ -186,6 +217,9 @@ const DashboardPage = () => {
     y: number;
     categoryId: string;
   } | null>(null);
+  const [creatingBoard, setCreatingBoard] = useState(false);
+  const [showCreateCategoryModal, setShowCreateCategoryModal] = useState(false);
+  const [showCreateTagModal, setShowCreateTagModal] = useState(false);
 
   const loadSnapshotsOverview = useCallback(
     async (boardList: Board[], isMounted: () => boolean) => {
@@ -385,6 +419,8 @@ const DashboardPage = () => {
   }, []);
 
   const createNewBoard = async () => {
+    if (creatingBoard) return;
+    setCreatingBoard(true);
     try {
       const response = await fetch("/api/boards", {
         method: "POST",
@@ -405,6 +441,8 @@ const DashboardPage = () => {
     } catch (error) {
       console.error("Error creating board:", error);
       toast.error("Error creating board");
+    } finally {
+      setCreatingBoard(false);
     }
   };
 
@@ -521,6 +559,51 @@ const DashboardPage = () => {
     } catch (error) {
       console.error("Error duplicating board:", error);
       toast.error("Error duplicating board");
+    }
+  };
+
+  const handleCreateCategory = async (name: string, color: string, description?: string) => {
+    try {
+      const response = await fetch("/api/board-categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, color, description }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create category");
+      }
+
+      const createdCategory = await response.json();
+      setCategories((prev) => [...prev, createdCategory]);
+      toast.success("Category created");
+      setShowCreateCategoryModal(false);
+    } catch (error) {
+      console.error("Error creating category", error);
+      throw error;
+    }
+  };
+
+  const handleCreateTag = async (name: string, color: string, description?: string) => {
+    try {
+      const response = await fetch("/api/tags", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, color, description }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create tag");
+      }
+
+      const createdTag = await response.json();
+      setTags((prev) => [...prev, createdTag]);
+      toast.success("Tag created");
+      setShowCreateTagModal(false);
+    } catch (error) {
+      console.error("Error creating tag", error);
+      toast.error(error instanceof Error ? error.message : "Failed to create tag");
+      throw error;
     }
   };
 
@@ -820,10 +903,21 @@ const DashboardPage = () => {
             <div className="flex items-center gap-4">
               <button
                 onClick={createNewBoard}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-emerald-300 hover:bg-emerald-500/30 transition-colors"
+                disabled={creatingBoard}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-emerald-300 hover:bg-emerald-500/30 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                aria-busy={creatingBoard}
               >
-                <Plus className="w-4 h-4" />
-                New Board
+                {creatingBoard ? (
+                  <>
+                    <div className="h-4 w-4 rounded-full border-2 border-emerald-300/40 border-t-emerald-300 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    New Board
+                  </>
+                )}
               </button>
               <UserProfile />
             </div>
@@ -837,18 +931,30 @@ const DashboardPage = () => {
           <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
             <div>
               <p className="text-sm font-semibold text-white">Browse by category</p>
-              <p className="text-xs text-white/60">
-                {categories.length} {categories.length === 1 ? "category" : "categories"}
-              </p>
+              {categories.length > 0 && (
+                <p className="text-xs text-white/60">
+                  {categories.length} {categories.length === 1 ? "category" : "categories"}
+                </p>
+              )}
             </div>
-            {activeCategory !== "all" && (
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => setActiveCategory("all")}
-                className="text-xs uppercase tracking-wide text-emerald-300 border border-emerald-400/40 rounded-full px-3 py-1 hover:bg-emerald-500/10"
+                type="button"
+                onClick={() => setShowCreateCategoryModal(true)}
+                className="flex items-center gap-1 rounded-full border border-emerald-400/40 px-3 py-1 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/10"
               >
-                Clear
+                <Plus className="h-3.5 w-3.5" />
+                New Category
               </button>
-            )}
+              {activeCategory !== "all" && (
+                <button
+                  onClick={() => setActiveCategory("all")}
+                  className="text-xs uppercase tracking-wide text-emerald-300 border border-emerald-400/40 rounded-full px-3 py-1 hover:bg-emerald-500/10"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
           <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 snap-x">
             {folderItems.map((item) => {
@@ -882,9 +988,11 @@ const DashboardPage = () => {
                   </span>
                   <div>
                     <p className="text-sm font-semibold text-white">{item.name}</p>
-                    <p className="text-xs text-white/60">
-                      {item.count} {item.count === 1 ? "board" : "boards"}
-                    </p>
+                    {((item.id === "all" || item.id === "uncategorized") || item.count > 0) && (
+                      <p className="text-xs text-white/60">
+                        {item.count} {item.count === 1 ? "board" : "boards"}
+                      </p>
+                    )}
                   </div>
                 </button>
               );
@@ -961,92 +1069,120 @@ const DashboardPage = () => {
             </p>
             <button
               onClick={createNewBoard}
-              className="flex items-center gap-2 px-6 py-3 bg-emerald-500 text-black font-semibold rounded-lg hover:bg-emerald-400 transition-colors mx-auto"
+              disabled={creatingBoard}
+              className="flex items-center gap-2 px-6 py-3 bg-emerald-500 text-black font-semibold rounded-lg hover:bg-emerald-400 transition-colors mx-auto disabled:opacity-70 disabled:cursor-not-allowed"
+              aria-busy={creatingBoard}
             >
-              <Plus className="w-4 h-4" />
-              Create Board
+              {creatingBoard ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4" />
+                  Create Board
+                </>
+              )}
             </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {displayedBoards.map((board) => (
-              <motion.div
-                key={board.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-black/40 border border-white/10 rounded-xl p-6 hover:bg-black/60 transition-colors group relative cursor-pointer"
-                onClick={() => router.push(`/board/${board.id}`)}
-                onContextMenu={(e: React.MouseEvent) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setCategoryContextMenu(null);
-                  setBoardContextMenu({
-                    x: e.clientX,
-                    y: e.clientY,
-                    boardId: board.id,
-                    boardName: board.title,
-                  });
-                }}
-              >
-                <div className="mb-4 flex items-center gap-2">
-                  <Grid className="w-5 h-5 text-emerald-400" />
-                  <h3 className="font-semibold text-white truncate">
-                    {board.title}
-                  </h3>
-                </div>
-
-                {board.description && (
-                  <p className="text-white/70 text-sm mb-4 line-clamp-2">
-                    {board.description}
-                  </p>
-                )}
-
-                {(board.category_ids?.length || board.tag_ids?.length) && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {(board.category_ids ?? []).map((categoryId) => {
-                      const category = categoryMap[categoryId];
-                      if (!category) return null;
-                      return (
-                        <span
-                          key={`category-${categoryId}`}
-                          className="rounded-full px-3 py-1 text-xs font-medium text-white/90"
-                          style={{ backgroundColor: `${category.color ?? "#475569"}33`, border: `1px solid ${category.color ?? "#475569"}` }}
-                        >
-                          {category.name}
-                        </span>
-                      );
-                    })}
-                    {(board.tag_ids ?? []).map((tagId) => {
-                      const tag = tagMap[tagId];
-                      if (!tag) return null;
-                      return (
-                        <span
-                          key={`tag-${tagId}`}
-                          className="rounded-full px-3 py-1 text-xs font-medium text-white/90"
-                          style={{ backgroundColor: `${tag.color ?? "#f59e0b"}33`, border: `1px solid ${tag.color ?? "#f59e0b"}` }}
-                        >
-                          {tag.name}
-                        </span>
-                      );
-                    })}
+            {displayedBoards.map((board) => {
+              const associatedCategories = (board.category_ids ?? [])
+                .map((categoryId) => categoryMap[categoryId])
+                .filter((category): category is Category => Boolean(category));
+              const boardAccent = associatedCategories[0]?.color ?? "#34D399";
+              const hasCategoryOrTagBadges =
+                (board.category_ids?.length ?? 0) > 0 ||
+                (board.tag_ids?.length ?? 0) > 0;
+              return (
+                <motion.div
+                  key={board.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-black/40 border border-white/10 rounded-xl p-6 hover:bg-black/60 transition-colors group relative cursor-pointer"
+                  onClick={() => router.push(`/board/${board.id}`)}
+                  onContextMenu={(e: React.MouseEvent) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setCategoryContextMenu(null);
+                    setBoardContextMenu({
+                      x: e.clientX,
+                      y: e.clientY,
+                      boardId: board.id,
+                      boardName: board.title,
+                    });
+                  }}
+                >
+                  <div className="mb-4 flex items-center gap-2">
+                    <Grid className="w-5 h-5" style={{ color: boardAccent }} />
+                    <h3 className="font-semibold text-white truncate">
+                      {board.title}
+                    </h3>
                   </div>
-                )}
 
-                <div className="flex items-center justify-between text-xs text-white/50">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    {formatDate(board.updated_at)}
+                  {board.description && (
+                    <p className="text-white/70 text-sm mb-4 line-clamp-2">
+                      {board.description}
+                    </p>
+                  )}
+
+                  {hasCategoryOrTagBadges && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {(board.category_ids ?? []).map((categoryId) => {
+                        const category = categoryMap[categoryId];
+                        if (!category) return null;
+                        const categoryColor = category.color ?? "#475569";
+                        return (
+                          <span
+                            key={`category-${categoryId}`}
+                            className="rounded-full px-3 py-1 text-xs font-semibold text-white shadow-sm"
+                            style={{
+                              backgroundColor: categoryColor,
+                              border: `1px solid ${categoryColor}`,
+                            }}
+                          >
+                            {category.name}
+                          </span>
+                        );
+                      })}
+                      {(board.tag_ids ?? []).map((tagId) => {
+                        const tag = tagMap[tagId];
+                        if (!tag) return null;
+                        const tagColor = tag.color ?? "#f59e0b";
+                        return (
+                          <span
+                            key={`tag-${tagId}`}
+                            className="rounded-full px-3 py-1 text-xs font-medium border"
+                            style={{
+                              borderColor: tagColor,
+                              color: tagColor,
+                            }}
+                          >
+                            {tag.name}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between text-xs text-white/50">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {formatDate(board.updated_at)}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {new Date(board.updated_at).toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {new Date(board.updated_at).toLocaleTimeString("en-US", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         )}
         {filteredBoards.length > displayedBoards.length && (
@@ -1141,26 +1277,42 @@ const DashboardPage = () => {
         </section>
       </div>
 
-      {/* Board Editor */}
+      <CategoryModal
+        isOpen={showCreateCategoryModal}
+        onClose={() => setShowCreateCategoryModal(false)}
+        onSave={handleCreateCategory}
+        title="Create Category"
+        confirmLabel="Create Category"
+      />
+
+      <TagModal
+        isOpen={showCreateTagModal}
+        onClose={() => setShowCreateTagModal(false)}
+        onSave={handleCreateTag}
+        title="Create Tag"
+      />
+
+      {/* Board Settings */}
       {boardEditor && (
-        <BoardEditModal
+        <BoardSettingsModal
           isOpen={true}
           onClose={() => setBoardEditor(null)}
-          categories={categories}
-          tags={tags}
-          initialValues={{
-            name: boardEditor.title,
-            description: boardEditor.description ?? "",
-            categoryIds: boardEditor.categoryIds,
-            tagIds: boardEditor.tagIds,
-          }}
-          onSave={async ({ name, description, categoryIds, tagIds }) => {
+          boardId={boardEditor.id}
+          currentTitle={boardEditor.title}
+          currentDescription={boardEditor.description ?? ""}
+          currentTags={boardEditor.tagIds}
+          currentCategories={boardEditor.categoryIds}
+          onSave={async (data) => {
             await updateBoardDetails(boardEditor.id, {
-              title: name,
-              description,
-              categoryIds,
-              tagIds,
+              title: data.title,
+              description: data.description,
+              categoryIds: data.category_ids,
+              tagIds: data.tag_ids,
             });
+          }}
+          onDelete={async () => {
+            await deleteBoard(boardEditor.id);
+            setBoardEditor(null);
           }}
         />
       )}
