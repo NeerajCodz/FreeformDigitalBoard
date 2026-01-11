@@ -1,4 +1,5 @@
 import type { WithTimestamps } from './common';
+import type { BoardState } from './board';
 
 /**
  * Board-related types

@@ -78,6 +78,10 @@ const MAX_IMAGE_DIMENSION = 720;
 const MAX_IMAGE_FILE_SIZE = 8 * 1024 * 1024; // 8MB safety cap
 const MAX_ATTACHMENT_SIZE = 1 * 1024 * 1024; // 1MB for attachments
 const WIRES_ENABLED = false;
+const NOTE_MIN_HEIGHT = 180;
+const NOTE_HEADER_HEIGHT = 48;
+const NOTE_CONTENT_PADDING = 32;
+const NOTE_ATTACHMENT_ROW_HEIGHT = 38;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
@@ -147,6 +151,13 @@ const useBoardHistory = (initial: BoardState) => {
 };
 
 const randomColor = () => palette[Math.floor(Math.random() * palette.length)];
+
+const truncateText = (value: string, limit = 80) => {
+  if (!value) return "";
+  const trimmed = value.trim();
+  if (trimmed.length <= limit) return trimmed;
+  return `${trimmed.slice(0, limit - 3)}...`;
+};
 
 const defaultPin = (kind: PinKind, viewport: BoardState["viewport"]): BoardPin => {
   const randomOffset = Math.random() * 120;
@@ -288,11 +299,31 @@ export default function BoardEditor() {
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const attachmentInputRef = useRef<HTMLInputElement | null>(null);
+  const noteTextareaRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
 
   const selectedPin = useMemo(() => history.state.pins.find((pin) => pin.id === selectedPinId) ?? null, [history.state.pins, selectedPinId]);
+  const boardDescriptionPreview = useMemo(() => {
+    if (!boardDescription || !boardDescription.trim()) {
+      return "Click to add description";
+    }
+    return truncateText(boardDescription, 96);
+  }, [boardDescription]);
   const focusPin = useCallback((pinId: string) => {
     setSelectedPinId(pinId);
     setSelectedPinIds([]);
+  }, []);
+  const computeNoteHeight = useCallback((pin: BoardPin, element?: HTMLTextAreaElement | null) => {
+    const textarea = element ?? noteTextareaRefs.current[pin.id];
+    if (!textarea) return pin.height;
+    textarea.style.height = "auto";
+    const contentHeight = textarea.scrollHeight;
+    textarea.style.height = `${contentHeight}px`;
+    const attachmentCount = pin.attachments?.length ?? 0;
+    const attachmentsHeight = attachmentCount > 0 ? attachmentCount * NOTE_ATTACHMENT_ROW_HEIGHT + 12 : 0;
+    return Math.max(
+      NOTE_MIN_HEIGHT,
+      NOTE_HEADER_HEIGHT + NOTE_CONTENT_PADDING + contentHeight + attachmentsHeight
+    );
   }, []);
 
   const deletePin = useCallback(
@@ -378,6 +409,32 @@ export default function BoardEditor() {
   useEffect(() => {
     interactionRef.current = interaction;
   }, [interaction]);
+
+  useEffect(() => {
+    const adjustments: Array<{ id: string; height: number }> = [];
+
+    history.state.pins.forEach((pin) => {
+      if (pin.kind !== "note") return;
+      const textarea = noteTextareaRefs.current[pin.id];
+      if (!textarea) return;
+      const desiredHeight = computeNoteHeight(pin, textarea);
+      if (Math.abs(desiredHeight - pin.height) > 1) {
+        adjustments.push({ id: pin.id, height: desiredHeight });
+      }
+    });
+
+    if (!adjustments.length) return;
+
+    history.mutate((draft) => {
+      adjustments.forEach(({ id, height }) => {
+        const target = draft.pins.find((p) => p.id === id);
+        if (target) {
+          target.height = height;
+        }
+      });
+      return draft;
+    });
+  }, [history, history.state.pins, computeNoteHeight]);
 
   const loadSnapshots = useCallback(async (id: string) => {
     const res = await fetch(`/api/boards/${id}/snapshots`);
@@ -800,9 +857,11 @@ export default function BoardEditor() {
   const createLabel = async (name: string, color?: string) => {
     const trimmed = name.trim();
     if (!trimmed) return null;
-    // Check if label already exists
     const existing = labels.find((label) => label.name.toLowerCase() === trimmed.toLowerCase());
-    if (existing) return existing.id;
+    if (existing) {
+      toast.error("Label already exists");
+      return existing.id;
+    }
     
     try {
       const res = await fetch(`/api/boards/${boardId}/labels`, {
@@ -811,12 +870,15 @@ export default function BoardEditor() {
         credentials: "include",
         body: JSON.stringify({ name: trimmed, color: color || randomColor() }),
       });
-      if (res.ok) {
-        const newLabel = await res.json();
-        setLabels((prev) => [...prev, newLabel]);
-        toast.success("Label created");
-        return newLabel.id;
+      const payload = await res.json().catch(() => null);
+      if (!res.ok || !payload) {
+        toast.error((payload as { error?: string } | null)?.error || "Failed to create label");
+        return null;
       }
+      const createdLabel = payload as { id: string; name: string; color: string };
+      setLabels((prev) => [...prev, createdLabel]);
+      toast.success("Label created");
+      return createdLabel.id;
     } catch (error) {
       console.error(error);
       toast.error("Failed to create label");
@@ -841,9 +903,11 @@ export default function BoardEditor() {
   const createGroup = async (name: string, color?: string) => {
     const trimmed = name.trim();
     if (!trimmed) return null;
-    // Check if group already exists
     const existing = groups.find((group) => group.name.toLowerCase() === trimmed.toLowerCase());
-    if (existing) return existing.id;
+    if (existing) {
+      toast.error("Group already exists");
+      return existing.id;
+    }
     
     try {
       const res = await fetch(`/api/boards/${boardId}/groups`, {
@@ -852,12 +916,31 @@ export default function BoardEditor() {
         credentials: "include",
         body: JSON.stringify({ name: trimmed, color: color || randomColor() }),
       });
-      if (res.ok) {
-        const newGroup = await res.json();
-        setGroups((prev) => [...prev, newGroup]);
-        toast.success("Group created");
-        return newGroup.id;
+      const payload = await res.json().catch(() => null);
+      if (!res.ok || !payload) {
+        toast.error((payload as { error?: string } | null)?.error || "Failed to create group");
+        return null;
       }
+      const createdGroup = payload as { id: string; name: string; color?: string };
+      const finalGroup = {
+        id: createdGroup.id,
+        name: createdGroup.name,
+        color: createdGroup.color || color || randomColor(),
+      };
+      setGroups((prev) => [...prev, finalGroup]);
+      history.commit((draft) => {
+        if (!draft.groups.find((g) => g.id === finalGroup.id)) {
+          draft.groups.push({
+            id: finalGroup.id,
+            name: finalGroup.name,
+            color: finalGroup.color,
+            pinIds: [],
+          });
+        }
+        return draft;
+      });
+      toast.success("Group created");
+      return finalGroup.id;
     } catch (error) {
       console.error(error);
       toast.error("Failed to create group");
@@ -1215,7 +1298,7 @@ export default function BoardEditor() {
                   })()}
                 </div>
                 <div className="text-xs text-slate-400 truncate flex items-center gap-2 flex-wrap">
-                  <span>{boardDescription || "Click to add description"}</span>
+                  <span title={boardDescription || "Click to add description"}>{boardDescriptionPreview}</span>
                   {/* Tag Badges (Outline) */}
                   {boardTags.length > 0 && (
                     <>
@@ -1366,6 +1449,7 @@ export default function BoardEditor() {
 
           {/* Right: User Menu */}
           <div className="flex items-center gap-2 flex-shrink-0">
+            {/*
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="p-2 hover:bg-white/5 rounded-md transition-colors"
@@ -1373,7 +1457,7 @@ export default function BoardEditor() {
               title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
             >
               <Menu className="w-5 h-5" />
-            </button>
+            </button>*/}
             <UserProfile />
           </div>
         </div>
@@ -1910,14 +1994,39 @@ export default function BoardEditor() {
                         ) : (
                           <div>
                             <textarea
+                              ref={(el) => {
+                                if (!el) {
+                                  delete noteTextareaRefs.current[pin.id];
+                                  return;
+                                }
+                                noteTextareaRefs.current[pin.id] = el;
+                                requestAnimationFrame(() => {
+                                  const desiredHeight = computeNoteHeight(pin, el);
+                                  if (Math.abs(desiredHeight - pin.height) > 1) {
+                                    history.mutate((draft) => {
+                                      const target = draft.pins.find((p) => p.id === pin.id);
+                                      if (target) {
+                                        target.height = desiredHeight;
+                                      }
+                                      return draft;
+                                    });
+                                  }
+                                });
+                              }}
                               value={pin.content}
-                              onChange={(e) => updatePin(pin.id, { content: e.target.value })}
+                              onChange={(e) => {
+                                const nextHeight = computeNoteHeight(pin, e.currentTarget);
+                                const changes: Partial<BoardPin> = { content: e.target.value };
+                                if (Math.abs(nextHeight - pin.height) > 1) {
+                                  changes.height = nextHeight;
+                                }
+                                updatePin(pin.id, changes);
+                              }}
                               className="w-full bg-transparent text-sm text-slate-100 resize-none outline-none mb-2"
                               placeholder="Write something..."
                               onPointerDown={(e) => e.stopPropagation()}
                               onFocus={() => focusPin(pin.id)}
                               disabled={pin.locked}
-                              style={{ height: pin.attachments && pin.attachments.length > 0 ? 'calc(100% - 80px)' : '100%' }}
                             />
                             {/* Attachments */}
                             {pin.attachments && pin.attachments.length > 0 && (

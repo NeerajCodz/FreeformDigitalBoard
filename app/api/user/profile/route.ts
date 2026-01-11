@@ -27,9 +27,10 @@ export async function GET(request: NextRequest) {
             id: true
           }
         },
-        labels: {
+        _count: {
           select: {
-            id: true
+            boards: true,
+            categories: true
           }
         }
       }
@@ -54,9 +55,13 @@ export async function GET(request: NextRequest) {
       created_at: userWithRelations.created_at,
       updated_at: userWithRelations.updated_at,
       stats: {
-        total_boards: userWithRelations.boards.length,
-        total_categories: userWithRelations.categories.length,
-        total_labels: userWithRelations.labels.length,
+        total_boards: userWithRelations._count.boards,
+        total_categories: userWithRelations._count.categories,
+        total_labels: await prisma.label.count({
+          where: {
+            board: { clerk_user_id: user.clerk_user_id }
+          }
+        }),
         recent_boards: userWithRelations.boards
       }
     })
