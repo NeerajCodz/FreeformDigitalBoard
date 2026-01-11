@@ -17,9 +17,12 @@ export default function UserSync() {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
         })
 
-        if (response.ok) {
+        if (response.status === 401) {
+          console.warn('⚠️ User not authenticated; skipping sync')
+        } else if (response.ok) {
           console.log('✅ User synced with database')
         } else {
           console.error('❌ Failed to sync user with database')

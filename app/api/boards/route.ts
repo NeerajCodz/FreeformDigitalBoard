@@ -18,6 +18,8 @@ export async function GET() {
         id: true,
         title: true,
         description: true,
+        tag_ids: true,
+        category_ids: true,
         updated_at: true,
         created_at: true,
       },
@@ -39,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, description, state } = body;
+    const { title, description, state, tag_ids, category_ids } = body;
 
     if (!title || typeof title !== "string") {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
@@ -52,6 +54,8 @@ export async function POST(request: NextRequest) {
         clerk_user_id: user.clerk_user_id,
         title,
         description,
+        tag_ids: tag_ids || [],
+        category_ids: category_ids || [],
         state: boardState as any,
       },
     });

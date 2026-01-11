@@ -1,7 +1,7 @@
 {
   "name": "Freeform Digital Board",
   "short_name": "Freeform Board",
-  "description": "A web-based digital logic circuit simulator that allows users to visually design, build, and test digital circuits in their browser.",
+  "description": "A web-based freeform digital board for organizing ideas and content.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

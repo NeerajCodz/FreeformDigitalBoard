@@ -9,8 +9,9 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-6.18-2D3748?style=flat&logo=prisma)](https://www.prisma.io/)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue?style=flat)](CHANGELOG.md)
 
-[Features](#-features) • [Screenshots](#-screenshots) • [Getting Started](#-getting-started) • [Tech Stack](#-tech-stack) • [API Documentation](#-api-documentation) • [Contributing](#-contributing)
+[Features](#-features) • [Screenshots](#-screenshots) • [Getting Started](#-getting-started) • [Tech Stack](#-tech-stack) • [Changelog](CHANGELOG.md) • [API Documentation](#-api-documentation) • [Contributing](#-contributing)
 
 </div>
 

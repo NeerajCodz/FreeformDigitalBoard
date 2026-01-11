@@ -11,7 +11,7 @@ type DashboardContextMenuProps = {
   onDuplicate?: () => void;
   onClose: () => void;
   itemName: string;
-  itemType: "circuit" | "category";
+  itemType: "board" | "category";
 };
 
 export function DashboardContextMenu({
@@ -25,6 +25,7 @@ export function DashboardContextMenu({
   itemType,
 }: DashboardContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
+  const primaryActionLabel = itemType === "board" ? "Edit" : "Rename";
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -69,7 +70,7 @@ export function DashboardContextMenu({
           className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-200 transition-colors hover:bg-white/10"
         >
           <Edit3 className="h-4 w-4 text-blue-400" />
-          <span>Rename</span>
+          <span>{primaryActionLabel}</span>
         </button>
         {onDuplicate && (
           <button

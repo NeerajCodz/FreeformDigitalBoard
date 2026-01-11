@@ -36,9 +36,16 @@ export function useDatabaseUser() {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
         })
 
-        if (!response.ok) {
+        if (response.status === 401) {
+          // Not authenticated on server (e.g., missing cookies)
+          if (isMounted) {
+            setDbUser(null)
+          }
+          return
+        } else if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
           throw new Error(errorData.error || `Failed to sync user (${response.status})`)
         }
@@ -109,10 +116,17 @@ export function useDatabaseUserQuery() {
         setIsLoading(true)
         setError(null)
 
-        const response = await fetch('/api/user/profile')
+        const response = await fetch('/api/user/profile', {
+          credentials: 'include',
+        })
         
         if (response.status === 404) {
           // User doesn't exist in database yet
+          if (isMounted) {
+            setDbUser(null)
+          }
+        } else if (response.status === 401) {
+          // Not authenticated; treat as no user without error
           if (isMounted) {
             setDbUser(null)
           }

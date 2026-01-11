@@ -42,7 +42,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -61,9 +61,42 @@ export async function DELETE(
       return NextResponse.json({ error: "Category not found" }, { status: 404 });
     }
 
+    let deleteBoardCount = 0;
+    const body = await request.json().catch(() => null);
+    const cascadeBoards = Boolean(body?.deleteBoardsAndSnapshots);
+
+    if (cascadeBoards) {
+      const result = await prisma.board.deleteMany({
+        where: {
+          clerk_user_id: user.clerk_user_id,
+          category_ids: { has: id },
+        },
+      });
+      deleteBoardCount = result.count;
+    } else {
+      const boardsToUpdate = await prisma.board.findMany({
+        where: {
+          clerk_user_id: user.clerk_user_id,
+          category_ids: { has: id },
+        },
+        select: { id: true, category_ids: true },
+      });
+
+      await Promise.all(
+        boardsToUpdate.map((board) =>
+          prisma.board.update({
+            where: { id: board.id },
+            data: {
+              category_ids: board.category_ids.filter((categoryId) => categoryId !== id),
+            },
+          })
+        )
+      );
+    }
+
     await prisma.category.delete({ where: { id } });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, deletedBoards: deleteBoardCount });
   } catch (error) {
     console.error("Error deleting board category", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

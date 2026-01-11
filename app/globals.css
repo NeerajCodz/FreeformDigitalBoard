@@ -156,6 +156,39 @@
     /*noinspection CssInvalidPropertyValue*/
     text-wrap: balance;
   }
+  
+  /* Custom scrollbar styles */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
+  
+  .scrollbar-track-slate-900::-webkit-scrollbar-track {
+    background: #0f172a;
+  }
+  
+  .scrollbar-thumb-slate-700::-webkit-scrollbar-thumb {
+    background: #334155;
+  }
+  
+  .scrollbar-thumb-slate-600::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+  }
 }
 .react-flow__handle {
   position: relative;

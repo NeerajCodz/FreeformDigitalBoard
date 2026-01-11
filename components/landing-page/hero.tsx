@@ -18,9 +18,6 @@ export default function Hero() {
             <Link href="/dashboard" className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors shadow-lg hover:shadow-emerald-500/50">
               Start Creating
             </Link>
-            <a href="#features" className="px-6 py-3 bg-white/5 hover:bg-white/10 text-slate-100 font-medium rounded-lg border border-white/10 transition-colors">
-              Learn More
-            </a>
           </div>
         </div>
 

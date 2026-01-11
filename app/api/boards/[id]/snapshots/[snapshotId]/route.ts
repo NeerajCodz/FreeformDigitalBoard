@@ -69,3 +69,53 @@ export async function DELETE(
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string; snapshotId: string }> }
+) {
+  try {
+    const { id, snapshotId } = await params;
+    const user = await getServerUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json().catch(() => null);
+    const name = body?.name as string | undefined;
+    const note = body?.note as string | undefined;
+
+    if (!name && note === undefined) {
+      return NextResponse.json(
+        { error: "Nothing to update" },
+        { status: 400 }
+      );
+    }
+
+    const existing = await prisma.boardSnapshot.findFirst({
+      where: {
+        id: snapshotId,
+        board_id: id,
+        clerk_user_id: user.clerk_user_id,
+      },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Snapshot not found" }, { status: 404 });
+    }
+
+    const updated = await prisma.boardSnapshot.update({
+      where: { id: snapshotId },
+      data: {
+        ...(name && { name }),
+        ...(note !== undefined && { note }),
+      },
+    });
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error("Error updating snapshot", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

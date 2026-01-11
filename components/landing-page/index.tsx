@@ -7,7 +7,7 @@ import Services from "./services"
 import Faq from "./faq"
 import CallToAction from "./call-to-action"
 import Footer from "./footer"
-import { AuthModal } from "@/components/AuthModal"
+import AuthModal from "@/components/modals/AuthModal"
 
 interface LandingPageProps {
   showHeader?: boolean

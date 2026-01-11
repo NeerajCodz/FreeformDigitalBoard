@@ -65,8 +65,16 @@ export interface BoardPin {
   linkMetadata?: LinkMetadata;
 }
 
+export interface BoardWire {
+  id: string;
+  fromPinId: string;
+  toPinId: string;
+  color: string;
+}
+
 export interface BoardState {
   pins: BoardPin[];
   groups: BoardGroup[];
+  wires?: BoardWire[];
   viewport: BoardViewport;
 }

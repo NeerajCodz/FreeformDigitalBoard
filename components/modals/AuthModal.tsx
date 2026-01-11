@@ -36,7 +36,7 @@ type AuthModalProps = {
   onClose: () => void;
 };
 
-export function AuthModal({ open, mode, onClose }: AuthModalProps) {
+export default function AuthModal({ open, mode, onClose }: AuthModalProps) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && open) onClose();

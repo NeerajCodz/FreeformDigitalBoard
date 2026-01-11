@@ -8,6 +8,7 @@ export const emptyBoardState: BoardState = {
     y: 0,
     zoom: 1,
   },
+  wires: [],
 };
 
 const clamp = (value: number, min: number, max: number) => {
@@ -90,9 +91,26 @@ export const sanitizeBoardState = (value: unknown): BoardState => {
         .filter(Boolean) as BoardGroup[]
     : [];
 
+  const wires = Array.isArray((candidate as any).wires)
+    ? ((candidate as any).wires as any[])
+        .filter((w: any) => 
+          w && 
+          typeof w.id === 'string' && 
+          typeof w.fromPinId === 'string' && 
+          typeof w.toPinId === 'string'
+        )
+        .map((w: any) => ({
+          id: w.id,
+          fromPinId: w.fromPinId,
+          toPinId: w.toPinId,
+          color: typeof w.color === 'string' ? w.color : '#38bdf8',
+        }))
+    : [];
+
   return {
     pins,
     groups,
     viewport,
+    wires,
   };
 };

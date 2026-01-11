@@ -1,10 +1,9 @@
 "use client";
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, FolderPlus, Palette } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { X, Tag, Palette } from 'lucide-react';
 
-interface CategoryModalProps {
+interface TagModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (name: string, color: string, description?: string) => Promise<void>;
@@ -12,23 +11,23 @@ interface CategoryModalProps {
 }
 
 const PRESET_COLORS = [
-  '#3B82F6', // Blue
-  '#10B981', // Green
-  '#8B5CF6', // Purple
   '#F59E0B', // Orange
   '#EF4444', // Red
   '#EC4899', // Pink
+  '#8B5CF6', // Purple
+  '#3B82F6', // Blue
+  '#10B981', // Green
   '#14B8A6', // Teal
   '#F97316', // Deep Orange
   '#6366F1', // Indigo
   '#84CC16', // Lime
 ];
 
-const CategoryModal: React.FC<CategoryModalProps> = ({
+const TagModal: React.FC<TagModalProps> = ({
   isOpen,
   onClose,
   onSave,
-  title = 'Create Category'
+  title = 'Create Tag'
 }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -41,16 +40,12 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
     e.preventDefault();
     if (!formData.name.trim()) return;
 
-    console.log('CategoryModal: Submitting form with data:', formData);
     setLoading(true);
     try {
       await onSave(formData.name, formData.color, formData.description);
-      console.log('CategoryModal: onSave completed successfully');
       setFormData({ name: '', color: PRESET_COLORS[0], description: '' });
-      // Don't close here - let parent handle it
     } catch (error) {
-      console.error('CategoryModal: Error saving category:', error);
-      toast.error('Failed to create category. Please try again.');
+      console.error('Error saving tag:', error);
     } finally {
       setLoading(false);
     }
@@ -69,7 +64,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4"
         onClick={handleClose}
       >
         <motion.div
@@ -81,7 +76,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
         >
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-              <FolderPlus className="w-5 h-5" />
+              <Tag className="w-5 h-5" />
               {title}
             </h2>
             <button
@@ -95,14 +90,14 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-white/90 mb-2">
-                Category Name *
+                Tag Name *
               </label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter category name"
+                placeholder="Enter tag name"
                 required
                 maxLength={50}
               />
@@ -116,7 +111,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                placeholder="Describe this category"
+                placeholder="Describe this tag"
                 rows={2}
                 maxLength={200}
               />
@@ -164,8 +159,8 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
                   </>
                 ) : (
                   <>
-                    <FolderPlus className="w-4 h-4" />
-                    Create Category
+                    <Tag className="w-4 h-4" />
+                    Create Tag
                   </>
                 )}
               </button>
@@ -177,4 +172,4 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
   );
 };
 
-export default CategoryModal;
+export default TagModal;

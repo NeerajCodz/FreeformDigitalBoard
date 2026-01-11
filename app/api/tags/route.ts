@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { name, color } = body;
+    const { name, color, description } = body;
 
     if (!name || typeof name !== "string") {
       return NextResponse.json({ error: "Invalid tag name" }, { status: 400 });
@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
         clerk_user_id: userId,
         name: name.trim(),
         color: color || "#F59E0B",
+        description: description || null,
       },
     });
 

@@ -2,10 +2,12 @@
 
 import type React from "react";
 import { useState, useEffect } from "react";
-import Image from "next/image";
+import NextImage from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Menu, X } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
+import UserProfile from "@/components/UserProfile";
 
 type HeaderProps = {
   onLoginClick?: () => void;
@@ -17,6 +19,8 @@ export default function Header({ onLoginClick, onRegisterClick }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
+  const { user, isLoaded } = useUser();
+  const isAuthenticated = isLoaded && Boolean(user);
 
   useEffect(() => {
     setMounted(true);
@@ -62,19 +66,17 @@ export default function Header({ onLoginClick, onRegisterClick }: HeaderProps) {
               >
                 {mounted ? (
                   <>
-                    <div className="text-2xl font-bold flex items-center gap-3 text-slate-100">
-                      <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg">
-                        <Image
-                          src={"/icon.svg"}
-                          alt="Digital Board Logo"
-                          width={24}
-                          height={24}
-                          className="h-6 w-6 brightness-0 invert"
-                          priority
-                        />
-                      </div>
+                    <NextImage
+                      src="/logo.svg"
+                      alt="Digital Board"
+                      width={160}
+                      height={42}
+                      className="h-10 w-auto"
+                      priority
+                    />
+                    <span className="text-lg font-semibold text-slate-100">
                       Freeform Digital Board
-                    </div>
+                    </span>
                   </>
                 ) : (
                   <div className="h-10 w-[200px]" />
@@ -100,24 +102,38 @@ export default function Header({ onLoginClick, onRegisterClick }: HeaderProps) {
               <div className="flex items-center space-x-4">
 
                 <div className="hidden md:flex items-center space-x-3">
-                  <button
-                    onClick={() => {
-                      if (onLoginClick) onLoginClick();
-                      else router.push("/sign-in");
-                    }}
-                    className="text-sm font-medium text-slate-300 hover:text-emerald-400 transition-colors"
-                  >
-                    Sign In
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (onRegisterClick) onRegisterClick();
-                      else router.push("/sign-up");
-                    }}
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg hover:shadow-emerald-500/50"
-                  >
-                    Get Started
-                  </button>
+                  {isAuthenticated ? (
+                    <>
+                      <Link
+                        href="/dashboard"
+                        className="text-sm font-medium text-emerald-300 border border-emerald-400/40 rounded-lg px-4 py-2 hover:bg-emerald-500/10 transition-all"
+                      >
+                        Dashboard
+                      </Link>
+                      <UserProfile />
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => {
+                          if (onLoginClick) onLoginClick();
+                          else router.push("/sign-in");
+                        }}
+                        className="text-sm font-medium text-slate-300 hover:text-emerald-400 transition-colors"
+                      >
+                        Sign In
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (onRegisterClick) onRegisterClick();
+                          else router.push("/sign-up");
+                        }}
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg hover:shadow-emerald-500/50"
+                      >
+                        Get Started
+                      </button>
+                    </>
+                  )}
                 </div>
 
                 <button
@@ -143,17 +159,15 @@ export default function Header({ onLoginClick, onRegisterClick }: HeaderProps) {
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-between p-6 border-b border-white/10">
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg">
-                    <Image
-                      src={"/icon.svg"}
-                      alt="Digital Board Logo"
-                      width={20}
-                      height={20}
-                      className="h-5 w-5 brightness-0 invert"
-                    />
-                  </div>
-                  <span className="text-lg font-bold text-slate-100">
-                    Digital Board
+                  <NextImage
+                    src="/logo.svg"
+                    alt="Digital Board"
+                    width={130}
+                    height={34}
+                    className="h-8 w-auto"
+                  />
+                  <span className="text-base font-semibold text-slate-100">
+                    Freeform Digital Board
                   </span>
                 </div>
                 <button
@@ -169,26 +183,43 @@ export default function Header({ onLoginClick, onRegisterClick }: HeaderProps) {
               </nav>
 
               <div className="p-6 border-t border-white/10 space-y-3">
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    if (onLoginClick) onLoginClick();
-                    else router.push("/sign-in");
-                  }}
-                  className="block w-full text-center py-3 text-sm font-medium text-slate-300 hover:text-emerald-400 transition-colors rounded-lg hover:bg-white/5 border border-white/10"
-                >
-                  Sign In
-                </button>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    if (onRegisterClick) onRegisterClick();
-                    else router.push("/sign-up");
-                  }}
-                  className="block w-full text-center py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg"
-                >
-                  Get Started
-                </button>
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block w-full text-center py-3 text-sm font-semibold text-emerald-300 border border-emerald-400/40 rounded-lg hover:bg-emerald-500/10"
+                    >
+                      Go to Dashboard
+                    </Link>
+                    <div className="flex justify-center">
+                      <UserProfile />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        if (onLoginClick) onLoginClick();
+                        else router.push("/sign-in");
+                      }}
+                      className="block w-full text-center py-3 text-sm font-medium text-slate-300 hover:text-emerald-400 transition-colors rounded-lg hover:bg-white/5 border border-white/10"
+                    >
+                      Sign In
+                    </button>
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        if (onRegisterClick) onRegisterClick();
+                        else router.push("/sign-up");
+                      }}
+                      className="block w-full text-center py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg"
+                    >
+                      Get Started
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
