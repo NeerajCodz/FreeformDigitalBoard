@@ -58,11 +58,17 @@ Perfect for brainstorming, project planning, mood boards, visual note-taking, an
 ---
 
 ## 📸 Screenshots
-<img width="1895" height="862" alt="image" src="https://github.com/user-attachments/assets/f457ac2d-9539-4ca0-af00-7c856cea13f7" />
-<img width="1901" height="867" alt="image" src="https://github.com/user-attachments/assets/58f750e6-e1d1-4c65-b70a-bc02a987a0ef" />
-<img width="1919" height="865" alt="image" src="https://github.com/user-attachments/assets/28e115b2-3def-46fa-a536-278c088d1354" />
-<img width="1917" height="864" alt="image" src="https://github.com/user-attachments/assets/14382300-f6ff-4c3d-85b8-8d349bc2c6dd" />
-<img width="1919" height="871" alt="image" src="https://github.com/user-attachments/assets/b7e7b9ba-07bc-4e7f-a533-d7968a9adc9d" />
+<img width="1898" height="861" alt="image" src="https://github.com/user-attachments/assets/5d5427dd-503e-4b97-9964-60c09881163d" />
+<img width="1897" height="861" alt="image" src="https://github.com/user-attachments/assets/2c5c2efe-7878-436e-85ab-cf148f42f477" />
+<img width="1898" height="818" alt="image" src="https://github.com/user-attachments/assets/f3ad98b6-7e8c-4d6e-8ef9-23e2b388af22" />
+<img width="1899" height="857" alt="image" src="https://github.com/user-attachments/assets/a245362e-3b6f-4769-b92d-87c2de9f6e0d" />
+<img width="1919" height="866" alt="image" src="https://github.com/user-attachments/assets/9274f8dc-36c1-4217-8cda-2c0bffcd8625" />
+<img width="1918" height="869" alt="image" src="https://github.com/user-attachments/assets/488566eb-f8fc-463c-b79b-ccebefd61d1a" />
+<img width="1919" height="868" alt="image" src="https://github.com/user-attachments/assets/5d966aa3-8df7-432b-9ad6-9a239686c1ee" />
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/fbb85f6c-43e8-4671-806a-29472ffd4433" />
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/130b99e9-9db9-4a78-b18d-2e3e60d9af12" />
+<img width="1919" height="1077" alt="image" src="https://github.com/user-attachments/assets/5452a3bb-86c3-418b-b9e5-8327c0d78b74" />
+<img width="1916" height="990" alt="image" src="https://github.com/user-attachments/assets/32af140d-bf92-4975-85ea-1a5bad8b0790" />
 
 ## 🚀 Getting Started
 
@@ -78,8 +84,8 @@ Before you begin, ensure you have the following installed:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/NeerajCodz/Digital-Circuit-Simulator.git
-   cd Digital-Circuit-Simulator
+   git clone https://github.com/NeerajCodz/FreeformDigitalBoard.git
+   cd FreeformDigitalBoard
    ```
 
 2. **Install dependencies**
@@ -271,6 +277,7 @@ POST   /api/user/sync                   # Sync user data
 ### Environment Setup
 Ensure all environment variables are configured in your hosting platform:
 ```env
+POSTGRES_URL=your_production_postgres_url
 DATABASE_URL=your_production_database_url
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_key
 CLERK_SECRET_KEY=your_clerk_secret
@@ -385,7 +392,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Neeraj Sathish Kumar**
 
 - GitHub: [@NeerajCodz](https://github.com/NeerajCodz)
-- Project: [Freeform Digital Board](https://github.com/NeerajCodz/Digital-Circuit-Simulator)
+- Project: [Freeform Digital Board](https://github.com/NeerajCodz/FreeformDigitalBoard)
 
 ---
 
@@ -401,7 +408,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📮 Support
 
 If you have questions or need help, please:
-- Open an [issue](https://github.com/NeerajCodz/Digital-Circuit-Simulator/issues)
+- Open an [issue](https://github.com/NeerajCodz/FreeformDigitalBoard/issues)
 - Check existing issues for solutions
 - Review the documentation above
 
