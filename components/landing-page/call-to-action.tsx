@@ -24,7 +24,7 @@ export default function CallToAction() {
 
         <div className="hidden md:flex md:w-2/5 md:absolute md:right-0 md:top-0 md:bottom-0 md:items-center">
           <Image
-            src="/8bvaKz01 (1).svg"
+            src="/gif.svg"
             alt="Circuit Illustration"
             width={500}
             height={500}
